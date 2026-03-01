@@ -1,6 +1,7 @@
 package com.example.metrics;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Attempts to create multiple instances via reflection.
@@ -14,10 +15,15 @@ public class ReflectionAttack {
         Constructor<MetricsRegistry> ctor = MetricsRegistry.class.getDeclaredConstructor();
         ctor.setAccessible(true);
 
-        MetricsRegistry evil = ctor.newInstance();
-
         System.out.println("Singleton identity: " + System.identityHashCode(singleton));
-        System.out.println("Evil identity     : " + System.identityHashCode(evil));
-        System.out.println("Same object?      : " + (singleton == evil));
+        try {
+            MetricsRegistry evil = ctor.newInstance();
+            System.out.println("Evil identity     : " + System.identityHashCode(evil));
+            System.out.println("Same object?      : " + (singleton == evil));
+        } catch (InvocationTargetException ex) {
+            Throwable cause = ex.getCause();
+            System.out.println("Reflection blocked: " + cause.getClass().getSimpleName() +
+                    " - " + cause.getMessage());
+        }
     }
 }
